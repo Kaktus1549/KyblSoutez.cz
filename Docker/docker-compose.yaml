@@ -1,0 +1,7 @@
+services:
+  kyblsoutez:
+    build: ../Frontend/.
+    container_name: kyblsoutez
+    restart: unless-stopped
+    ports:
+      - "1549:3000"
