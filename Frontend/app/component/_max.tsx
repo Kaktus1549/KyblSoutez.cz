@@ -18,7 +18,8 @@ export default function Tututudu() {
     useEffect(() => {
     if (maxShowed && audioRef.current) {
       // try to play the sound
-      audioRef.current.play().catch((err: any) => {
+      audioRef.current.play().catch((err: unknown) => {
+        // safely log unknown catch value
         console.warn("Autoplay blocked:", err);
       });
     }
