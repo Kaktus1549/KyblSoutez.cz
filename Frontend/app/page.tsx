@@ -1,13 +1,22 @@
+"use client";
 import Mainpage from "./component/_main";
 import Tututudu from "./component/_max";
-
+import Loading from "./component/_loading";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  // Generate a random number between 0 and 1
-  const random = Math.random();
+  const [showMax, setShowMax] = useState(false);
+  const [decided, setDecided] = useState(false);
 
-  // 10% chance to render Tututudu
-  const shouldRenderTututudu = random < 0.1;
+  useEffect(() => {
+    const random = Math.random();
+    setShowMax(random < 0.3);
+    setDecided(true);
+  }, []);
 
-  return shouldRenderTututudu ? <Tututudu /> : <Mainpage />;
+  if (!decided) return(
+    <Loading />
+  )
+
+  return showMax ? <Tututudu /> : <Mainpage />;
 }
