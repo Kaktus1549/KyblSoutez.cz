@@ -6,6 +6,9 @@ import Memes from "./_memes";
 
 export default function Mainpage() {
     const [counter, setCounter] = useState<number | string>(0);
+    const [buttonText, setButtonText] = useState("No! You are wrong, life has meaning!");
+    const [showNumbers, setShowNumbers] = useState(false);
+    const [firstDeep, setFirstDeep] = useState(true);
 
     // Increment counter, if counter is bigger than 255, set to "Fu*ck numbers"
     const incrementCounter = () => {
@@ -32,10 +35,23 @@ export default function Mainpage() {
                 <Memes />
 
                 <h1 className="meme-title">Button clicker</h1>
-                <p className="meme-text">This doesn&apos;t have any meaning, just click the button as hard as you can.</p>
+                <p className="meme-text">This doesn&apos;t have any meaning, it&apos;s the same as life or everything else. You keep going because stopping feels even worse, though you can&apos;t explain why. Every day blurs into the next, a loop of waiting for something that never comes. Just sheer pointless, painful existence.</p>
                 <div className="meme-cont">
-                    <a>Hehe counter goes brrrr: <span id="counter">{counter}</span></a>
-                    <button id="increment-btn" onClick={incrementCounter}>Brrrrr</button>
+                    {showNumbers === false ? (
+                        firstDeep ? (
+                            <button id="increment-btn-2" onClick={() => { setFirstDeep(false); }}>{buttonText}</button>
+                        ) : (
+                            <>
+                                <a>Oh, there really was no meaning... Anyway, pressing the button goes brrrr.</a><br />
+                                <button id="show-numbers-btn" onClick={() => { setShowNumbers(true); }}>Just count already pls</button>
+                            </>
+                        )
+                    ) : (
+                        <>
+                            <a>Hehe counter goes brrrr: <span id="counter">{counter}</span></a>
+                            <button id="increment-btn" onClick={incrementCounter}>Brrrrr</button>
+                        </>
+                    )}
                 </div>
                 <div className="meme-footer">
                     <p>Powered by <a href="https://kaktusgame.eu">sheer will</a></p>
