@@ -9,5 +9,5 @@ export default function Home() {
   // 10% chance to render Tututudu
   const shouldRenderTututudu = random < 0.1;
 
-  return shouldRenderTututudu ? <Tututudu /> : <Tututudu />;
+  return shouldRenderTututudu ? <Tututudu /> : <Mainpage />;
 }

@@ -32,7 +32,7 @@ export default function Mainpage() {
                 <Memes />
 
                 <h1 className="meme-title">Button clicker</h1>
-                <p className="meme-text">This doesn't have any meaning, just click the button as hard as you can.</p>
+                <p className="meme-text">This doesn&apos;t have any meaning, just click the button as hard as you can.</p>
                 <div className="meme-cont">
                     <a>Hehe counter goes brrrr: <span id="counter">{counter}</span></a>
                     <button id="increment-btn" onClick={incrementCounter}>Brrrrr</button>
