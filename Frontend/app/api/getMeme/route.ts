@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-let id_map: { [key: string]: string[] } = {};
+const id_map: { [key: string]: string[] } = {};
 
 // If ID not in map file, create new <id> : <array of memes>
 // When request with ID comes, return random meme from that array and remove it from array
