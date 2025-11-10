@@ -5,6 +5,7 @@ import { useState } from "react";
 import Memes from "./_memes";
 
 export default function Mainpage() {
+    const identifier = String(Math.random()); // Unique identifier for this component instance
     const [counter, setCounter] = useState<number | string>(0);
     const [buttonText, setButtonText] = useState("No! You are wrong, life has meaning!");
     const [showNumbers, setShowNumbers] = useState(false);
@@ -32,7 +33,7 @@ export default function Mainpage() {
             <div className="meme-main">
                 <h1 className="meme-title">KýblSoutěž</h1>
                 <p className="meme-text">Please do not confuse with KyberSoutěž, this is a completely different thing!!!!! We are heavily specialized in organizing bucket challanges. Join our cult of bucket lovers and pray that our lord and savior The Big Kýbl will bless us with his wisdom. And remember you all, The Big Kýbl sees us all.</p>
-                <Memes />
+                <Memes identifier={identifier} />
 
                 <h1 className="meme-title">Button clicker</h1>
                 <p className="meme-text">This doesn&apos;t have any meaning, it&apos;s the same as life or everything else. You keep going because stopping feels even worse, though you can&apos;t explain why. Every day blurs into the next, a loop of waiting for something that never comes. Just sheer pointless, painful existence.</p>

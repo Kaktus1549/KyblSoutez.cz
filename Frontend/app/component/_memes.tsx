@@ -2,9 +2,8 @@
 import Image from "next/image";
 import { useState } from "react";
 
-export default function Memes() {
+export default function Memes({identifier}: {identifier: string}) {
   const [memeUrl, setMemeUrl] = useState("/api/getMeme");
-  const identifier = String(Math.random()); // Unique identifier for this component instance
 
   const getNewMeme = () => {
     // Add random query param to bypass browser cache
