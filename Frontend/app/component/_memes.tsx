@@ -4,10 +4,11 @@ import { useState } from "react";
 
 export default function Memes() {
   const [memeUrl, setMemeUrl] = useState("/api/getMeme");
+  const identifier = Math.random() < 0.5 ? 'user123' : ''; // Example identifier logic
 
   const getNewMeme = () => {
     // Add random query param to bypass browser cache
-    setMemeUrl(`/api/getMeme?rand=${Math.random()}`);
+    setMemeUrl(`/api/getMeme?rand=${Math.random()}&id=${identifier}`);
   };
 
   return (
