@@ -160,6 +160,13 @@ body {
   margin-bottom: 1rem;
 }
 
+.rand-memes video {
+  width: 500px;
+  height: 500px;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
 .rand-memes button {
   background-color: var(--text-color);
   color: #fff;
