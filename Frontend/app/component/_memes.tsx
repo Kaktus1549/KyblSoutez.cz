@@ -63,7 +63,7 @@ export default function Memes({ identifier }: { identifier: string }) {
       <h1 className="meme-title">Funni pictures</h1>
 
       {mediaType === "video" ? (
-        <video key={mediaUrl ?? "video"} src={mediaUrl ?? undefined} controls width={500} autoPlay loop onError={() => setMediaType(null)}></video>
+        <video key={mediaUrl ?? "video"} src={mediaUrl ?? undefined} controls width={500} height={500} autoPlay loop onError={() => setMediaType(null)}></video>
       ) : mediaType === "image" ? (
         <Image key={mediaUrl ?? "img"} src={mediaUrl} alt="Random Meme" width={500} height={500} onError={() => setMediaType("video")} />
       ) : (
