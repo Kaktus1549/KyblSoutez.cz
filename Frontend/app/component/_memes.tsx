@@ -50,8 +50,12 @@ export default function Memes({ identifier }: { identifier: string }) {
     };
   }, []);
 
-  if (!mediaUrl || !mediaType) {
+  if (!mediaUrl) {
     return <div>Loading...</div>;
+  }
+
+  if (mediaType === null) {
+    return <div>Failed to load media. Try again!</div>;
   }
 
   return (
@@ -59,9 +63,9 @@ export default function Memes({ identifier }: { identifier: string }) {
       <h1 className="meme-title">Funni pictures</h1>
 
       {mediaType === "video" ? (
-        <video key={mediaUrl ?? "video"} src={mediaUrl ?? undefined} controls width={500} />
+        <video key={mediaUrl ?? "video"} src={mediaUrl ?? undefined} controls width={500} autoPlay loop onError={() => setMediaType(null)}></video>
       ) : mediaType === "image" ? (
-        <Image key={mediaUrl ?? "img"} src={mediaUrl} alt="Random Meme" width={500} height={500} />
+        <Image key={mediaUrl ?? "img"} src={mediaUrl} alt="Random Meme" width={500} height={500} onError={() => setMediaType("video")} />
       ) : (
         <div>Loading...</div>
       )}
