@@ -42,6 +42,8 @@ export const GET = async (request: Request) => {
         ? 'image/png'
         : ext === '.gif'
         ? 'image/gif'
+        : ext === '.mp4'
+        ? 'video/mp4'
         : 'application/octet-stream';
 
     // Return the image as binary data
