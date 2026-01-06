@@ -7,31 +7,57 @@ type MediaType = "image" | "video";
 type MemeMeta = { url: string; type: MediaType };
 
 export default function Memes({ identifier }: { identifier: string }) {
-  const [src, setSrc] = useState<string>("");
+  const [src, setSrc] = useState("");
   const [type, setType] = useState<MediaType>("image");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   const [funniList, setFunniList] = useState<MemeMeta[]>([]);
-  const [currentFunniIndex, setCurrentFunniIndex] = useState<number>(-1);
+  const [currentFunniIndex, setCurrentFunniIndex] = useState(-1);
 
   const abortRef = useRef<AbortController | null>(null);
+
+  // Refs that always hold the latest values (avoids stale closures / dependency loops)
+  const funniRef = useRef<MemeMeta[]>([]);
+  const indexRef = useRef<number>(-1);
+
+  useEffect(() => {
+    funniRef.current = funniList;
+  }, [funniList]);
+
+  useEffect(() => {
+    indexRef.current = currentFunniIndex;
+  }, [currentFunniIndex]);
+
+  const showAtIndex = useCallback((idx: number) => {
+    const item = funniRef.current[idx];
+    if (!item) return;
+
+    setLoading(true);
+    setCurrentFunniIndex(idx);
+    setType(item.type);
+    setSrc(item.url);
+  }, []);
+
+  const getPreviousMeme = useCallback(() => {
+    const idx = indexRef.current;
+    if (idx <= 0) return;
+    showAtIndex(idx - 1);
+  }, [showAtIndex]);
 
   const getNewMeme = useCallback(async () => {
     setLoading(true);
 
-    // cancel any in-flight request (prevents race conditions)
+    // cancel any in-flight request
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
 
-    // If we already have "next" in history, just move forward
-    if (currentFunniIndex >= 0 && currentFunniIndex < funniList.length - 1) {
-      const nextIndex = currentFunniIndex + 1;
-      const next = funniList[nextIndex];
-      setCurrentFunniIndex(nextIndex);
-      setType(next.type);
-      setSrc(next.url);
-      setLoading(false);
+    // If we already have a "next" meme in history, just go forward
+    const idx = indexRef.current;
+    const list = funniRef.current;
+
+    if (idx >= 0 && idx < list.length - 1) {
+      showAtIndex(idx + 1);
       return;
     }
 
@@ -41,19 +67,25 @@ export default function Memes({ identifier }: { identifier: string }) {
         { signal: ac.signal, cache: "no-store" }
       );
 
-      if (!res.ok) throw new Error(`meta fetch failed: ${res.status}`);
+      if (!res.ok) throw new Error(`fetch failed: ${res.status}`);
 
       const data = (await res.json()) as MemeMeta;
 
-      // push into history
-      setFunniList((prev) => [...prev, data]);
+      setFunniList((prev) => {
+        const next = [...prev, data];
+        funniRef.current = next;
+        return next;
+      });
 
-      // move index to the new last item
-      setCurrentFunniIndex((prevIndex) => prevIndex + 1);
+      setCurrentFunniIndex((prevIdx) => {
+        const nextIdx = prevIdx + 1;
+        indexRef.current = nextIdx;
+        return nextIdx;
+      });
 
       setType(data.type);
       setSrc(data.url);
-      // loading will turn false via onLoad/onCanPlay handlers (or keep setLoading(false) if you want)
+      // loading will switch off via onLoad/onCanPlay handlers
     } catch (e: unknown) {
       const isAbort = e instanceof DOMException && e.name === "AbortError";
       if (!isAbort) {
@@ -62,26 +94,14 @@ export default function Memes({ identifier }: { identifier: string }) {
         setLoading(false);
       }
     }
-  }, [identifier, currentFunniIndex, funniList]);
+  }, [identifier, showAtIndex]);
 
-  const getPreviousMeme = useCallback(() => {
-    if (currentFunniIndex <= 0) return;
-
-    const prevIndex = currentFunniIndex - 1;
-    const prev = funniList[prevIndex];
-    if (!prev) return;
-
-    setLoading(true);
-    setCurrentFunniIndex(prevIndex);
-    setType(prev.type);
-    setSrc(prev.url);
-  }, [currentFunniIndex, funniList]);
-
-  // Load exactly once on first mount + cleanup on unmount
+  // Load ONCE when component mounts (no infinite loop)
   useEffect(() => {
     getNewMeme();
     return () => abortRef.current?.abort();
-  }, [getNewMeme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="rand-memes">
@@ -120,9 +140,9 @@ export default function Memes({ identifier }: { identifier: string }) {
               alt="Random Meme"
               width={500}
               height={500}
+              unoptimized
               onLoad={() => setLoading(false)}
               onError={() => setLoading(false)}
-              unoptimized
             />
           )}
 
