@@ -6,7 +6,7 @@ import Image from "next/image";
 type MediaType = "image" | "video";
 
 export default function Memes({ identifier }: { identifier: string }) {
-  const [src, setSrc] = useState<string>("api/getMeme");
+  const [src, setSrc] = useState<string>("");
   const [type, setType] = useState<MediaType>("image");
   const [loading, setLoading] = useState<boolean>(true);
   const abortRef = useRef<AbortController | null>(null);
@@ -21,7 +21,7 @@ export default function Memes({ identifier }: { identifier: string }) {
 
     try {
       const res = await fetch(
-        `/api/getMeme/meta?id=${encodeURIComponent(identifier)}&rand=${Math.random()}`,
+        `/api/getMeme?id=${encodeURIComponent(identifier)}&rand=${Math.random()}`,
         { signal: ac.signal, cache: "no-store" }
       );
 
