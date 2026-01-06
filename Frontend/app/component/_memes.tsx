@@ -30,10 +30,8 @@ export default function Memes({ identifier }: { identifier: string }) {
       const data = (await res.json()) as { url: string; type: MediaType };
       setType(data.type);
       setSrc(data.url);
-      // loading will turn false on media events below
     } catch (e: unknown) {
       const isAbort = e instanceof DOMException && e.name === "AbortError";
-
       if (!isAbort) {
         console.error(e);
         setSrc("");
@@ -41,6 +39,13 @@ export default function Memes({ identifier }: { identifier: string }) {
       }
     }
   };
+
+  // Load exactly once on first mount + cleanup on unmount
+  useEffect(() => {
+    getNewMeme();
+    return () => abortRef.current?.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="rand-memes">
@@ -52,7 +57,7 @@ export default function Memes({ identifier }: { identifier: string }) {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 16, // space between meme and button
+          gap: 16,
         }}
       >
         <div style={{ position: "relative", width: 500, height: 500 }}>
@@ -81,7 +86,6 @@ export default function Memes({ identifier }: { identifier: string }) {
               height={500}
               onLoad={() => setLoading(false)}
               onError={() => setLoading(false)}
-              // If these are random/static memes, this avoids Next trying to optimize each one:
               unoptimized
             />
           )}
