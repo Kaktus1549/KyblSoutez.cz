@@ -1,31 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 type MediaType = "image" | "video";
+type MemeMeta = { url: string; type: MediaType };
 
 export default function Memes({ identifier }: { identifier: string }) {
   const [src, setSrc] = useState<string>("");
   const [type, setType] = useState<MediaType>("image");
   const [loading, setLoading] = useState<boolean>(true);
-  const [funniList, setFunniList] = useState<string[]>([]);
+
+  const [funniList, setFunniList] = useState<MemeMeta[]>([]);
   const [currentFunniIndex, setCurrentFunniIndex] = useState<number>(-1);
+
   const abortRef = useRef<AbortController | null>(null);
 
-  function getPreviousMeme() {
-    if (currentFunniIndex == -1){
-      return;
-    }
-    else {
-      // Decrease the funni index to show the previous meme
-      setCurrentFunniIndex((prevIndex) => (prevIndex - 1 + funniList.length) % funniList.length);
-    }
-
-    setSrc(funniList[currentFunniIndex]);
-  }
-
-  const getNewMeme = async () => {
+  const getNewMeme = useCallback(async () => {
     setLoading(true);
 
     // cancel any in-flight request (prevents race conditions)
@@ -33,13 +24,14 @@ export default function Memes({ identifier }: { identifier: string }) {
     const ac = new AbortController();
     abortRef.current = ac;
 
-    // If funni index is not at the end of the list, just move forward in the list
-    if (currentFunniIndex < funniList.length - 1) {
-      useEffect(() => {
-        setCurrentFunniIndex((prevIndex) => prevIndex + 1);
-        setSrc(funniList[currentFunniIndex + 1]);
-        setLoading(false);
-      }, []);
+    // If we already have "next" in history, just move forward
+    if (currentFunniIndex >= 0 && currentFunniIndex < funniList.length - 1) {
+      const nextIndex = currentFunniIndex + 1;
+      const next = funniList[nextIndex];
+      setCurrentFunniIndex(nextIndex);
+      setType(next.type);
+      setSrc(next.url);
+      setLoading(false);
       return;
     }
 
@@ -51,11 +43,17 @@ export default function Memes({ identifier }: { identifier: string }) {
 
       if (!res.ok) throw new Error(`meta fetch failed: ${res.status}`);
 
-      const data = (await res.json()) as { url: string; type: MediaType };
+      const data = (await res.json()) as MemeMeta;
+
+      // push into history
+      setFunniList((prev) => [...prev, data]);
+
+      // move index to the new last item
+      setCurrentFunniIndex((prevIndex) => prevIndex + 1);
+
       setType(data.type);
       setSrc(data.url);
-      setFunniList((prevList) => [...prevList, data.url]);
-      setCurrentFunniIndex((prevIndex) => prevIndex + 1);
+      // loading will turn false via onLoad/onCanPlay handlers (or keep setLoading(false) if you want)
     } catch (e: unknown) {
       const isAbort = e instanceof DOMException && e.name === "AbortError";
       if (!isAbort) {
@@ -64,13 +62,26 @@ export default function Memes({ identifier }: { identifier: string }) {
         setLoading(false);
       }
     }
-  };
+  }, [identifier, currentFunniIndex, funniList]);
+
+  const getPreviousMeme = useCallback(() => {
+    if (currentFunniIndex <= 0) return;
+
+    const prevIndex = currentFunniIndex - 1;
+    const prev = funniList[prevIndex];
+    if (!prev) return;
+
+    setLoading(true);
+    setCurrentFunniIndex(prevIndex);
+    setType(prev.type);
+    setSrc(prev.url);
+  }, [currentFunniIndex, funniList]);
 
   // Load exactly once on first mount + cleanup on unmount
   useEffect(() => {
     getNewMeme();
-      return () => abortRef.current?.abort();
-  }, []);
+    return () => abortRef.current?.abort();
+  }, [getNewMeme]);
 
   return (
     <div className="rand-memes">
