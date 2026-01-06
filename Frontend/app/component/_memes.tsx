@@ -9,7 +9,21 @@ export default function Memes({ identifier }: { identifier: string }) {
   const [src, setSrc] = useState<string>("");
   const [type, setType] = useState<MediaType>("image");
   const [loading, setLoading] = useState<boolean>(true);
+  const [funniList, setFunniList] = useState<string[]>([]);
+  const [currentFunniIndex, setCurrentFunniIndex] = useState<number>(-1);
   const abortRef = useRef<AbortController | null>(null);
+
+  function getPreviousMeme() {
+    if (currentFunniIndex == -1){
+      return;
+    }
+    else {
+      // Decrease the funni index to show the previous meme
+      setCurrentFunniIndex((prevIndex) => (prevIndex - 1 + funniList.length) % funniList.length);
+    }
+
+    setSrc(funniList[currentFunniIndex]);
+  }
 
   const getNewMeme = async () => {
     setLoading(true);
@@ -18,6 +32,14 @@ export default function Memes({ identifier }: { identifier: string }) {
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
+
+    // If funni index is not at the end of the list, just move forward in the list
+    if (currentFunniIndex < funniList.length - 1) {
+      setCurrentFunniIndex((prevIndex) => prevIndex + 1);
+      setSrc(funniList[currentFunniIndex + 1]);
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch(
@@ -30,6 +52,8 @@ export default function Memes({ identifier }: { identifier: string }) {
       const data = (await res.json()) as { url: string; type: MediaType };
       setType(data.type);
       setSrc(data.url);
+      setFunniList((prevList) => [...prevList, data.url]);
+      setCurrentFunniIndex((prevIndex) => prevIndex + 1);
     } catch (e: unknown) {
       const isAbort = e instanceof DOMException && e.name === "AbortError";
       if (!isAbort) {
@@ -108,9 +132,14 @@ export default function Memes({ identifier }: { identifier: string }) {
           )}
         </div>
 
-        <button onClick={getNewMeme} disabled={loading} style={{ marginTop: 8 }}>
-          Another funni picture
-        </button>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <button onClick={getPreviousMeme} disabled={loading || currentFunniIndex <= 0}>
+            Previous funni picture
+          </button>
+          <button onClick={getNewMeme} disabled={loading}>
+            Another funni picture
+          </button>
+        </div>
       </div>
     </div>
   );
