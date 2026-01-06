@@ -6,7 +6,7 @@ import Image from "next/image";
 type MediaType = "image" | "video";
 
 export default function Memes({ identifier }: { identifier: string }) {
-  const [src, setSrc] = useState<string>("");
+  const [src, setSrc] = useState<string>("api/getMeme");
   const [type, setType] = useState<MediaType>("image");
   const [loading, setLoading] = useState<boolean>(true);
   const abortRef = useRef<AbortController | null>(null);
