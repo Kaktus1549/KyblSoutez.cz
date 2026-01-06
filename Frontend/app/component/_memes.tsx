@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 type MediaType = "image" | "video";
 
@@ -31,11 +32,14 @@ export default function Memes({ identifier }: { identifier: string }) {
       setSrc(data.url);
       // loading will turn false on media events below
     } catch (e) {
-      if ((e as any)?.name !== "AbortError") {
-        console.error(e);
-        setSrc("");
-        setLoading(false);
-      }
+      const isAbort =
+      e instanceof DOMException && e.name === "AbortError";
+
+    if (!isAbort) {
+      console.error(e);
+      setSrc("");
+      setLoading(false);
+    }
     }
   };
 
@@ -67,7 +71,7 @@ export default function Memes({ identifier }: { identifier: string }) {
             onError={() => setLoading(false)}
           />
         ) : (
-          <img
+          <Image
             key={src}
             src={src}
             alt="Random Meme"
