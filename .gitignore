@@ -2,3 +2,4 @@ Frontend/public/Memes/*
 Frontend/public/Audio/*
 node_modules/
 .next/
+.DS_Store

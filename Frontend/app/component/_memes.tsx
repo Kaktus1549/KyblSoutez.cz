@@ -1,77 +1,105 @@
 "use client";
-import Image from "next/image";
+
 import { useEffect, useRef, useState } from "react";
 
+type MediaType = "image" | "video";
+
 export default function Memes({ identifier }: { identifier: string }) {
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<"image" | "video" | null>(null);
-  const blobRef = useRef<string | null>(null);
+  const [src, setSrc] = useState<string>("");
+  const [type, setType] = useState<MediaType>("image");
+  const [loading, setLoading] = useState<boolean>(true);
+  const abortRef = useRef<AbortController | null>(null);
 
-  // load a media URL, detect content-type and create object URL
-  const loadMedia = async (url: string) => {
+  const getNewMeme = async () => {
+    setLoading(true);
+
+    // cancel any in-flight request (prevents race conditions)
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-      const contentType = (res.headers.get("content-type") || "").toLowerCase();
-      const isVideo = contentType.startsWith("video") || /\.mp4(\?|$)/i.test(url);
-      const blob = await res.blob();
-      const objectUrl = URL.createObjectURL(blob);
+      const res = await fetch(
+        `/api/getMeme/meta?id=${encodeURIComponent(identifier)}&rand=${Math.random()}`,
+        { signal: ac.signal, cache: "no-store" }
+      );
 
-      // revoke previous blob url
-      if (blobRef.current) URL.revokeObjectURL(blobRef.current);
-      blobRef.current = objectUrl;
+      if (!res.ok) throw new Error(`meta fetch failed: ${res.status}`);
 
-      setMediaUrl(objectUrl);
-      setMediaType(isVideo ? "video" : "image");
-    } catch (err) {
-      console.error("Failed to load media:", err);
-      setMediaUrl(null);
-      setMediaType(null);
+      const data = (await res.json()) as { url: string; type: MediaType };
+      setType(data.type);
+      setSrc(data.url);
+      // loading will turn false on media events below
+    } catch (e) {
+      if ((e as any)?.name !== "AbortError") {
+        console.error(e);
+        setSrc("");
+        setLoading(false);
+      }
     }
   };
 
-  const getNewMeme = () => {
-    const url = `/api/getMeme?rand=${Math.random()}&id=${encodeURIComponent(
-      identifier
-    )}`;
-    loadMedia(url);
-  };
-
-  // load initial meme when identifier changes
   useEffect(() => {
     getNewMeme();
+    return () => abortRef.current?.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identifier]);
-
-  // cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (blobRef.current) URL.revokeObjectURL(blobRef.current);
-    };
-  }, []);
-
-  if (!mediaUrl) {
-    return <div>Loading...</div>;
-  }
-
-  if (mediaType === null) {
-    return <div>Failed to load media. Try again!</div>;
-  }
 
   return (
     <div className="rand-memes">
       <h1 className="meme-title">Funni pictures</h1>
 
-      {mediaType === "video" ? (
-        <video key={mediaUrl ?? "video"} src={mediaUrl ?? undefined} controls width={500} height={500} autoPlay loop onError={() => setMediaType(null)}></video>
-      ) : mediaType === "image" ? (
-        <Image key={mediaUrl ?? "img"} src={mediaUrl} alt="Random Meme" width={500} height={500} onError={() => setMediaType("video")} />
-      ) : (
-        <div>Loading...</div>
-      )}
+      <div style={{ position: "relative", width: 500, height: 500 }}>
+        {type === "video" ? (
+          <video
+            key={src}
+            src={src}
+            controls
+            width={500}
+            height={500}
+            autoPlay
+            loop
+            preload="metadata"
+            onLoadStart={() => setLoading(true)}
+            onWaiting={() => setLoading(true)}
+            onCanPlay={() => setLoading(false)}
+            onPlaying={() => setLoading(false)}
+            onError={() => setLoading(false)}
+          />
+        ) : (
+          <img
+            key={src}
+            src={src}
+            alt="Random Meme"
+            width={500}
+            height={500}
+            onLoad={() => setLoading(false)}
+            onError={() => setLoading(false)}
+          />
+        )}
+
+        {loading && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "grid",
+              placeItems: "center",
+              background: "rgba(0,0,0,0.35)",
+              color: "white",
+              fontSize: 18,
+              borderRadius: 8,
+            }}
+          >
+            Loading…
+          </div>
+        )}
+      </div>
 
       <br />
-      <button onClick={getNewMeme}>Another funni picture</button>
+      <button onClick={getNewMeme} disabled={loading}>
+        Another funni picture
+      </button>
     </div>
   );
 }
