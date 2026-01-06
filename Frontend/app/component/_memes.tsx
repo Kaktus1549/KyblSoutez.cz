@@ -31,82 +31,83 @@ export default function Memes({ identifier }: { identifier: string }) {
       setType(data.type);
       setSrc(data.url);
       // loading will turn false on media events below
-    } catch (e) {
-      const isAbort =
-      e instanceof DOMException && e.name === "AbortError";
+    } catch (e: unknown) {
+      const isAbort = e instanceof DOMException && e.name === "AbortError";
 
-    if (!isAbort) {
-      console.error(e);
-      setSrc("");
-      setLoading(false);
-    }
+      if (!isAbort) {
+        console.error(e);
+        setSrc("");
+        setLoading(false);
+      }
     }
   };
-
-  useEffect(() => {
-    getNewMeme();
-    return () => abortRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [identifier]);
 
   return (
     <div className="rand-memes">
       <h1 className="meme-title">Funni pictures</h1>
 
-      <div style={{ position: "relative", width: 500, height: 500 }}>
-        {type === "video" ? (
-          <video
-            key={src}
-            src={src}
-            controls
-            width={500}
-            height={500}
-            autoPlay
-            loop
-            preload="metadata"
-            onLoadStart={() => setLoading(true)}
-            onWaiting={() => setLoading(true)}
-            onCanPlay={() => setLoading(false)}
-            onPlaying={() => setLoading(false)}
-            onError={() => setLoading(false)}
-            style={{marginBottom: 45 }}
-          />
-        ) : (
-          <Image
-            key={src}
-            src={src}
-            alt="Random Meme"
-            width={500}
-            height={500}
-            onLoad={() => setLoading(false)}
-            onError={() => setLoading(false)}
-            // Add margin to bottom 20px
-            style={{marginBottom: 45 }}
-          />
-        )}
+      <div
+        style={{
+          width: 500,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 16, // space between meme and button
+        }}
+      >
+        <div style={{ position: "relative", width: 500, height: 500 }}>
+          {type === "video" ? (
+            <video
+              key={src}
+              src={src}
+              controls
+              width={500}
+              height={500}
+              autoPlay
+              loop
+              preload="metadata"
+              onLoadStart={() => setLoading(true)}
+              onWaiting={() => setLoading(true)}
+              onCanPlay={() => setLoading(false)}
+              onPlaying={() => setLoading(false)}
+              onError={() => setLoading(false)}
+            />
+          ) : (
+            <Image
+              key={src}
+              src={src}
+              alt="Random Meme"
+              width={500}
+              height={500}
+              onLoad={() => setLoading(false)}
+              onError={() => setLoading(false)}
+              // If these are random/static memes, this avoids Next trying to optimize each one:
+              unoptimized
+            />
+          )}
 
-        {loading && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "grid",
-              placeItems: "center",
-              background: "rgba(0,0,0,0.35)",
-              color: "white",
-              fontSize: 18,
-              borderRadius: 8,
-            }}
-          >
-            Loading…
-          </div>
-        )}
+          {loading && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "grid",
+                placeItems: "center",
+                background: "rgba(0,0,0,0.35)",
+                color: "white",
+                fontSize: 18,
+                borderRadius: 8,
+              }}
+            >
+              Loading…
+            </div>
+          )}
+        </div>
+
+        <button onClick={getNewMeme} disabled={loading} style={{ marginTop: 8 }}>
+          Another funni picture
+        </button>
       </div>
-
-      <br />
-      <button onClick={getNewMeme} disabled={loading}>
-        Another funni picture
-      </button>
     </div>
   );
 }
