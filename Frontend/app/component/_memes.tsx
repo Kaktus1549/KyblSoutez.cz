@@ -35,9 +35,11 @@ export default function Memes({ identifier }: { identifier: string }) {
 
     // If funni index is not at the end of the list, just move forward in the list
     if (currentFunniIndex < funniList.length - 1) {
-      setCurrentFunniIndex((prevIndex) => prevIndex + 1);
-      setSrc(funniList[currentFunniIndex + 1]);
-      setLoading(false);
+      useEffect(() => {
+        setCurrentFunniIndex((prevIndex) => prevIndex + 1);
+        setSrc(funniList[currentFunniIndex + 1]);
+        setLoading(false);
+      }, []);
       return;
     }
 
@@ -67,8 +69,7 @@ export default function Memes({ identifier }: { identifier: string }) {
   // Load exactly once on first mount + cleanup on unmount
   useEffect(() => {
     getNewMeme();
-    return () => abortRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      return () => abortRef.current?.abort();
   }, []);
 
   return (
