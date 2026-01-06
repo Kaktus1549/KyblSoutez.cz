@@ -69,7 +69,7 @@ export default function Memes({ identifier }: { identifier: string }) {
             onCanPlay={() => setLoading(false)}
             onPlaying={() => setLoading(false)}
             onError={() => setLoading(false)}
-            style={{marginBottom: 20 }}
+            style={{marginBottom: 45 }}
           />
         ) : (
           <Image
@@ -81,7 +81,7 @@ export default function Memes({ identifier }: { identifier: string }) {
             onLoad={() => setLoading(false)}
             onError={() => setLoading(false)}
             // Add margin to bottom 20px
-            style={{marginBottom: 20 }}
+            style={{marginBottom: 45 }}
           />
         )}
 
